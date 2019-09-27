@@ -33,9 +33,7 @@ class GUI(QtWidgets.QWidget):
 		# self.config = self.setup_collectSettings(path.join('attendanceTracker', 'assets', 'settings.ini'))
 
 		# Setting some state flags
-		self.capture = False
 		self.swipeData = ''
-		self.timer = QTimer()
 
 	def setup_collectSettings(self, file):
 		config = ConfigParser()
@@ -48,20 +46,21 @@ class GUI(QtWidgets.QWidget):
 		self.window.show()
 
 	def keyPressEvent(self, event):
+		# Recording input text
+		self.swipeData += event.text()
+
 		# If our character represents the start of magstripe data
-		if event.text() == '%' and not self.capture:
-			print('Starting input capture')
-			self.capture = True
-			self.timer.singleShot(800, self.processData)
+		if event.text() == '%':
+			print('Resetting input')
+			self.swipeData = ''
 
-		# Capture is enabled, so we record the key
-		if self.capture:
-			self.swipeData += event.text()
+		# If we have a newline, track our recorded data
+		if event.text() in ['\r', '\n']:
+			self.processData(117)
 
-	def processData(self):
-		self.capture = False
-		if len(self.swipeData) < 75:
-			self.setStudentInfo('ERROR: Swipe data not received', f'Bad data: "{self.swipeData}"')
+	def processData(self, expectedLength):
+		if len(self.swipeData) < expectedLength:
+			self.setStudentInfo('ERROR: Swipe data not received or corrupted.', f'Bad data: "{self.swipeData}"')
 			self.swipeData = ''
 
 		else:

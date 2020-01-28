@@ -1,85 +1,73 @@
 #!/usr/env python36
 
-from PySide2 import QtCore, QtUiTools, QtWidgets
-from PySide2.QtCore import QTimer
+# Standard libs
 from os import path
 from re import search
-# from googleapiclient import discovery
 from configparser import ConfigParser
 
-class remoteInfo():
-	def __init__(self, remoteSettings):
-		service = discovery.build(
-			'sheets',
-			'v4',
-			credentials = remoteSettings['credentials'],
-		)
-		self.request = service.spreadsheets().values().get(
-			spreadsheet_id = remoteSettings['spreadsheetID'],
-		)
+# PySide
+from PySide2 import QtCore, QtWidgets, QtGui
+from PySide2.QtUiTools import QUiLoader
+from PySide2.QtCore import QTimer, Qt
 
-	def pullAllInfo(self):
-		return self.request.execute()
-
+# Local modules
+from Student import StudentWidget, Student, TEST_STUDENT
+from Event import Event
+from Database import FirestoreDatabase
 
 class GUI(QtWidgets.QWidget):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		# Initalizing the UI
-		self.window = QtUiTools.QUiLoader().load(path.join('attendanceTracker', 'assets', 'main.ui'))
+		loader = QUiLoader()
+		# loader.registerCustomWidget(StudentWidget)
+		self.UI = loader.load(path.join('attendanceTracker', 'assets', 'main.ui'))
 		self.grabKeyboard()
 
-		# Getting settings
-		# self.config = self.setup_collectSettings(path.join('attendanceTracker', 'assets', 'settings.ini'))
+		self.studentWidget = StudentWidget()
+		self.UI.studentWidget.layout().addWidget(self.studentWidget.UI)
+		self.studentWidget.setWidgetInformation(None)
+		self.studentWidget.UI.saveButton.pressed.connect(self.saveStudentInfo)
+		self.studentWidget.UI.clearButton.pressed.connect(self.grabKeyboard)
+		self.UI.menuButton.pressed.connect(self.foobar)
+
+		self.database = FirestoreDatabase({
+			'certificatePath': path.join('attendanceTracker', 'assets', 'firestoreCertificate.json'),
+			'groupName': 'test',
+			'semesterName': 'spring2020',
+		})
 
 		# Setting some state flags
 		self.swipeData = ''
 
-	def setup_collectSettings(self, file):
-		config = ConfigParser()
-		config.read(file)
-		return config._sections
-
 	def setup_show(self):
 		# Creating the windows so we have something to find when looking for the window
-		self.window.create()
-		self.window.show()
+		self.UI.show()
 
 	def keyPressEvent(self, event):
+		print('key event')
 		# Recording input text
 		self.swipeData += event.text()
 
-		# If our character represents the start of magstripe data
-		if event.text() == '%':
-			print('Resetting input')
-			self.swipeData = ''
-
-		# If we have a newline, track our recorded data
+		# Ending our input when we see a return
 		if event.text() in ['\r', '\n']:
+			self.releaseKeyboard()
 			self.processData(117)
+			self.swipeData = ''
 
 	def processData(self, expectedLength):
 		if len(self.swipeData) < expectedLength:
-			self.setStudentInfo('ERROR: Swipe data not received or corrupted.', f'Bad data: "{self.swipeData}"')
-			self.swipeData = ''
+			self.studentWidget.setWidgetInformation(None)
 
 		else:
-			name  = self.getName(self.swipeData)
-			stuID = self.getID(self.swipeData)
-			numTickets = 0
-			discordName = 'NOT PROVIDED'
-
-			for num, line in enumerate(open('driveContent.csv')):
-				if search(stuID, line):
-					(name, discordName, stuID, numTickets) = [bite.strip() for bite in line.split(',')]
-
-			self.setStudentInfo(
-				self.getName(self.swipeData),
-				self.getID(self.swipeData),
-				str(int(numTickets) + 1),
-			)
-
-		self.swipeData = ''
+			studentID = self.getID(self.swipeData)
+			student = self.database.studentLookup(studentID)
+			if student is None:
+				student = Student(
+					self.getName(self.swipeData),
+					self.getID(self.swipeData),
+				)
+		self.studentWidget.setWidgetInformation(student)
 
 	def getName(self, data):
 		return data.split('^')[1].strip()
@@ -87,18 +75,17 @@ class GUI(QtWidgets.QWidget):
 	def getID(self, data):
 		return search('[A-Z]\d\d\d[A-Z]\d\d\d', data).group()
 
-	def setStudentInfo(self, name='__name__', idNum='__id__', tickets='__##__'):
-		self.window.student_name.setText(f'Full Name: {name}')
-		self.window.student_id.setText(f'Student ID: {idNum}')
-		self.window.student_tickets.setText(f'Ticket Count: {tickets}')
+	def saveStudentInfo(self):
+		self.database.saveStudent(self.studentWidget.getWidgetInformation())
 
+	def foobar(self):
+		self.studentWidget.setWidgetInformation(self.database.studentLookup('h735f787'))
+		print('pulling information')
 
 app = QtWidgets.QApplication()
 gui = GUI()
 gui.setup_show()
 app.exec_()
-
-
 
 
 

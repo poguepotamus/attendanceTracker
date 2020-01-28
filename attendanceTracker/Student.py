@@ -35,7 +35,7 @@ class Student():
 		yield 'name', self.name
 		yield 'ID', self.ID
 		yield 'nick', self.nick
-		yield 'details', self.details
+		yield 'questions', self.questions
 		yield 'events', self.events
 
 class StudentWidget(QWidget):
@@ -59,11 +59,16 @@ class StudentWidget(QWidget):
 
 		# Binding some buttons
 		self.UI.editButton.pressed.connect(self.toggleEditable)
+		self.UI.clearButton.pressed.connect(self._clearInfo)
 
 	def setWidgetInformation(self, student=None, eventTitle=None):
+		from pprint import pprint
+		if student is not None:
+			pprint(dict(student))
 		# Changing our student or event title information if given
 		self.student = student if student is not None else self.student
 		self.eventTitle = eventTitle if eventTitle is not None else self.eventTitle
+		print(self.student)
 
 		# Setting to display student details first
 		self.UI.studentWidgetTabContainer.setCurrentIndex(0)
@@ -73,10 +78,14 @@ class StudentWidget(QWidget):
 		self._displayStudentQuestions()
 		self._displayEventDetails()
 
+		# Setting our edit flag to false. This fixes formatting errors
+		self.toggleEditable(False)
+
 	def _displayStudentDetails(self):
 		# Checking if we have a student currently
 		if self.student == None:
 			self.UI.studentDetailsStack.setCurrentIndex(0)
+			self.UI.studentNickname.setText('')
 			return
 		self.UI.studentDetailsStack.setCurrentIndex(1)
 
@@ -135,7 +144,28 @@ class StudentWidget(QWidget):
 		self.UI.eventCost.setText(event.cost)
 		self.UI.eventCost.setText(event.payment)
 
+	def getWidgetInformation(self):
+		# Collecting information from each panel
+		studentDict = {
+			'nick': self.ID.studentNickname.text(),
+			'name': self.ID.studentName.text(),
+			'ID':   self.ID.studentID.text(),
+			'questions': self._getStudentQuestions()
+		}
+		return Student(**studentDict)
 
+	def _getStudentQuestions(self):
+		layout = self.UI.studentQuestions
+		questions = {}
+		for row in range(0, layout.rowCount()):
+			questions[layout.itemAt(row, QFormLayout.LabelRole)] = layout.itemAt(row, QFormLayout.FieldRole)
+		return questions
+
+	def _clearInfo(self):
+		print('Clearing information!')
+		self.student = None
+		self.event = None
+		self.setWidgetInformation(None)
 
 	def setup_show(self):
 		self.UI.create()
@@ -144,7 +174,7 @@ class StudentWidget(QWidget):
 	def toggleEditable(self, editable=None):
 		# Letting user specify is editable, or toggle
 		self.editMode = (not self.editMode if editable is None else editable)
-
+		print(f'Setting edit mode to {self.editMode}')
 		# Setting all QLineEdits to accept changes
 		for field in self.UI.findChildren(QLineEdit):
 			if type(field) is QLineEdit:
@@ -159,13 +189,6 @@ class StudentWidget(QWidget):
 		defaultFont = self.UI.studentName.font()
 		defaultFont.setPointSize(24)
 		self.UI.studentNickname.setFont(defaultFont)
-
-	# def saveData(self):
-	# 	studentData = Student(
-	# 		studentName =    self.UI.studentName.text(),
-	# 		studentID =      self.UI.studentID.text(),
-	# 		studentNick =    self,window.studentNameTitle.text(),
-	# 		studentDetails = self.getDetailsFromTab(),
 
 # Example student
 TEST_STUDENT = Student(

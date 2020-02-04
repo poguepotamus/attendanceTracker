@@ -62,13 +62,9 @@ class StudentWidget(QWidget):
 		self.UI.clearButton.pressed.connect(self._clearInfo)
 
 	def setWidgetInformation(self, student=None, eventTitle=None):
-		from pprint import pprint
-		if student is not None:
-			pprint(dict(student))
 		# Changing our student or event title information if given
 		self.student = student if student is not None else self.student
 		self.eventTitle = eventTitle if eventTitle is not None else self.eventTitle
-		print(self.student)
 
 		# Setting to display student details first
 		self.UI.studentWidgetTabContainer.setCurrentIndex(0)
@@ -174,7 +170,6 @@ class StudentWidget(QWidget):
 	def toggleEditable(self, editable=None):
 		# Letting user specify is editable, or toggle
 		self.editMode = (not self.editMode if editable is None else editable)
-		print(f'Setting edit mode to {self.editMode}')
 		# Setting all QLineEdits to accept changes
 		for field in self.UI.findChildren(QLineEdit):
 			if type(field) is QLineEdit:

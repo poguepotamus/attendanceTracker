@@ -45,7 +45,6 @@ class GUI(QtWidgets.QWidget):
 		self.UI.show()
 
 	def keyPressEvent(self, event):
-		print('key event')
 		# Recording input text
 		self.swipeData += event.text()
 

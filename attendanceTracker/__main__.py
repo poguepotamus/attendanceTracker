@@ -29,7 +29,7 @@ class GUI(QtWidgets.QWidget):
 		self.studentWidget.setWidgetInformation(None)
 		self.studentWidget.UI.saveButton.pressed.connect(self.saveStudentInfo)
 		self.studentWidget.UI.clearButton.pressed.connect(self.grabKeyboard)
-		self.UI.menuButton.pressed.connect(self.foobar)
+		# self.UI.menuButton.pressed.connect(self.foobar)
 
 		self.database = FirestoreDatabase({
 			'certificatePath': path.join('attendanceTracker', 'assets', 'firestoreCertificate.json'),
@@ -66,7 +66,7 @@ class GUI(QtWidgets.QWidget):
 					self.getName(self.swipeData),
 					self.getID(self.swipeData),
 				)
-		self.studentWidget.setWidgetInformation(student)
+		self.studentWidget.setWidgetInformation(student, '2020 week 6 general meeting')
 
 	def getName(self, data):
 		return data.split('^')[1].strip()
@@ -75,11 +75,12 @@ class GUI(QtWidgets.QWidget):
 		return search('[A-Z]\d\d\d[A-Z]\d\d\d', data).group()
 
 	def saveStudentInfo(self):
-		self.database.saveStudent(self.studentWidget.getWidgetInformation())
-
-	def foobar(self):
-		self.studentWidget.setWidgetInformation(self.database.studentLookup('h735f787'))
-		print('pulling information')
+		student = self.studentWidget.getWidgetInformation()
+		from pprint import pprint
+		print('Saving student:')
+		pprint(dict(student))
+		print('')
+		self.database.saveStudent(student)
 
 app = QtWidgets.QApplication()
 gui = GUI()

@@ -39,7 +39,6 @@ class Student():
 		yield 'events', self.events
 
 class StudentWidget(QWidget):
-	saveStudentInfo = Signal()
 	def __init__(self, student=None, eventTitle=None):
 		super().__init__()
 		# Loading our ui file and giving it some data
@@ -60,6 +59,7 @@ class StudentWidget(QWidget):
 		# Binding some buttons
 		self.UI.editButton.pressed.connect(self.toggleEditable)
 		self.UI.clearButton.pressed.connect(self._clearInfo)
+		self.UI.studentCheckinButton.pressed.connect(self.studentCheckin)
 
 	def setWidgetInformation(self, student=None, eventTitle=None):
 		# Changing our student or event title information if given
@@ -128,25 +128,27 @@ class StudentWidget(QWidget):
 			eventIndex = [event.title.lower() for event in self.student.events].index(self.eventTitle.lower())
 		# If we don't have an event in our student structure, then we need to ask to check in
 		except ValueError:
-			self.UI.studentDetailsStack.setCurrentIndex(1)
+			self.UI.eventDetailsStack.setCurrentIndex(1)
+			self.UI.studentCheckinButton.setText(f'Check student into "{self.eventTitle}"')
 			self.UI.studentWidgetTabContainer.setCurrentIndex(2)
 			return
-		self.UI.studnetDetailsStack.setCurrentIndex(2)
+		self.UI.eventDetailsStack.setCurrentIndex(2)
 
 		# Setting event details
 		event = self.student.events[eventIndex]
 		self.UI.eventTitle.setText(event.title)
 		self.UI.eventType.setText(event.eventType)
-		self.UI.eventCost.setText(event.cost)
-		self.UI.eventCost.setText(event.payment)
+		self.UI.eventCost.setText(str(event.cost))
+		self.UI.eventCost.setText(str(event.payment))
 
 	def getWidgetInformation(self):
 		# Collecting information from each panel
 		studentDict = {
-			'nick': self.ID.studentNickname.text(),
-			'name': self.ID.studentName.text(),
-			'ID':   self.ID.studentID.text(),
-			'questions': self._getStudentQuestions()
+			'nick': self.UI.studentNickname.text(),
+			'name': self.UI.studentName.text(),
+			'ID':   self.UI.studentID.text(),
+			'questions': self._getStudentQuestions(),
+			'events': self.student.events,
 		}
 		return Student(**studentDict)
 
@@ -166,6 +168,13 @@ class StudentWidget(QWidget):
 	def setup_show(self):
 		self.UI.create()
 		self.UI.show()
+
+	def studentCheckin(self):
+		self.student.addEvent(Event(
+			'2020 week 6 general meeting',
+			'meeting',
+		))
+		self.setWidgetInformation()
 
 	def toggleEditable(self, editable=None):
 		# Letting user specify is editable, or toggle

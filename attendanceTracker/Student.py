@@ -11,7 +11,7 @@ from PySide2.QtCore import Qt, Signal
 from Event import Event, PaymentType
 
 class Student():
-	def __init__(self, name, ID, nick, questions={}, events=[]):
+	def __init__(self, name, ID, nick='', questions={}, events=[]):
 		self.name = name
 		self.ID = ID
 		self.nick = nick
@@ -61,10 +61,10 @@ class StudentWidget(QWidget):
 		self.UI.clearButton.pressed.connect(self._clearInfo)
 		self.UI.studentCheckinButton.pressed.connect(self.studentCheckin)
 
-	def setWidgetInformation(self, student=None, eventTitle=None):
+	def setWidgetInformation(self, student=None, event=None):
 		# Changing our student or event title information if given
 		self.student = student if student is not None else self.student
-		self.eventTitle = eventTitle if eventTitle is not None else self.eventTitle
+		self.event = event if event is not None else self.event
 
 		# Setting to display student details first
 		self.UI.studentWidgetTabContainer.setCurrentIndex(0)
@@ -120,16 +120,16 @@ class StudentWidget(QWidget):
 			self.UI.studentEventNoneLabel.setText('No student details found...')
 			return
 		# Checking if we have an event name
-		elif self.eventTitle == None:
+		elif self.event == None:
 			self.UI.eventDetailsStack.setCurrentIndex(0)
 			self.UI.studentEventNoneLabel.setText('No event details found...')
 			return
 		try:
-			eventIndex = [event.title.lower() for event in self.student.events].index(self.eventTitle.lower())
+			eventIndex = [event.title.lower() for event in self.student.events].index(self.event.title.lower())
 		# If we don't have an event in our student structure, then we need to ask to check in
 		except ValueError:
 			self.UI.eventDetailsStack.setCurrentIndex(1)
-			self.UI.studentCheckinButton.setText(f'Check student into "{self.eventTitle}"')
+			self.UI.studentCheckinButton.setText(f'Check student into "{self.event.title}"')
 			self.UI.studentWidgetTabContainer.setCurrentIndex(2)
 			return
 		self.UI.eventDetailsStack.setCurrentIndex(2)
@@ -144,11 +144,11 @@ class StudentWidget(QWidget):
 	def getWidgetInformation(self):
 		# Collecting information from each panel
 		studentDict = {
-			'nick': self.UI.studentNickname.text(),
-			'name': self.UI.studentName.text(),
-			'ID':   self.UI.studentID.text(),
-			'questions': self._getStudentQuestions(),
-			'events': self.student.events,
+			'nick':       self.UI.studentNickname.text(),
+			'name':       self.UI.studentName.text(),
+			'ID':         self.UI.studentID.text(),
+			'questions':  self._getStudentQuestions(),
+			'events':     self.student.events,
 		}
 		return Student(**studentDict)
 
@@ -163,17 +163,14 @@ class StudentWidget(QWidget):
 		print('Clearing information!')
 		self.student = None
 		self.event = None
-		self.setWidgetInformation(None)
+		self.setWidgetInformation(None, None)
 
 	def setup_show(self):
 		self.UI.create()
 		self.UI.show()
 
 	def studentCheckin(self):
-		self.student.addEvent(Event(
-			'2020 week 6 general meeting',
-			'meeting',
-		))
+		self.student.addEvent(self.event)
 		self.setWidgetInformation()
 
 	def toggleEditable(self, editable=None):

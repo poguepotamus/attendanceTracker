@@ -66,7 +66,7 @@ class GUI(QtWidgets.QWidget):
 					self.getName(self.swipeData),
 					self.getID(self.swipeData),
 				)
-		self.studentWidget.setWidgetInformation(student, '2020 week 6 general meeting')
+			self.studentWidget.setWidgetInformation(student, Event('Febuary Lock-in', 'lockin'))
 
 	def getName(self, data):
 		return data.split('^')[1].strip()
@@ -86,30 +86,3 @@ app = QtWidgets.QApplication()
 gui = GUI()
 gui.setup_show()
 app.exec_()
-
-
-
-
-# service = discovery.build('sheets', 'v4', credentials=credentials)
-
-# # The ID of the spreadsheet to retrieve data from.
-# spreadsheet_id = 'my-spreadsheet-id'  # TODO: Update placeholder value.
-
-# # The A1 notation of the values to retrieve.
-# range_ = 'my-range'  # TODO: Update placeholder value.
-
-# # How values should be represented in the output.
-# # The default render option is ValueRenderOption.FORMATTED_VALUE.
-# value_render_option = ''  # TODO: Update placeholder value.
-
-# # How dates, times, and durations should be represented in the output.
-# # This is ignored if value_render_option is
-# # FORMATTED_VALUE.
-# # The default dateTime render option is [DateTimeRenderOption.SERIAL_NUMBER].
-# date_time_render_option = ''  # TODO: Update placeholder value.
-
-# request = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=range_, valueRenderOption=value_render_option, dateTimeRenderOption=date_time_render_option)
-# response = request.execute()
-
-# # TODO: Change code below to process the `response` dict:
-# pprint(response)

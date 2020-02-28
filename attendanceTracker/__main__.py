@@ -69,7 +69,7 @@ class GUI(QtWidgets.QWidget):
 			self.studentWidget.setWidgetInformation(student, Event('Febuary Lock-in', 'lockin'))
 
 	def getName(self, data):
-		return data.split('^')[1].strip()
+		return ' '.join([__ for __ in reversed(data.split('^')[1].strip().split('/'))])
 
 	def getID(self, data):
 		return search('[A-Z]\d\d\d[A-Z]\d\d\d', data).group()

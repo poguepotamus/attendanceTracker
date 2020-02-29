@@ -66,7 +66,7 @@ class GUI(QtWidgets.QWidget):
 					self.getName(self.swipeData),
 					self.getID(self.swipeData),
 				)
-			self.studentWidget.setWidgetInformation(student, Event('Febuary Lock-in', 'lockin'))
+			self.studentWidget.setWidgetInformation(student, Event('February Lock-in', 'lockin'))
 
 	def getName(self, data):
 		return ' '.join([__ for __ in reversed(data.split('^')[1].strip().split('/'))])
